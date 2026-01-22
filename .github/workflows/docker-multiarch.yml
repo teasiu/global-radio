@@ -1,4 +1,4 @@
-name: Build & Push Multi-Arch Docker Image
+name: Build Frontend & Release Static Files & Docker Image
 
 on:
   push:
@@ -16,13 +16,48 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      # ---------- 前端构建 ----------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      # ---------- 打包静态文件 ----------
+      - name: Package static files
+        run: |
+          cd dist
+          zip -r ../frontend-dist.zip .
+          cd ..
+
+      # ---------- 创建 Release 并上传 ----------
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Frontend Static Files v${{ github.run_number }}
+          body: |
+            Automated build from commit:
+            ${{ github.sha }}
+          files: |
+            frontend-dist.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ---------- Docker 多架构（可选） ----------
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
