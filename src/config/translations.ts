@@ -339,7 +339,7 @@ const baseTranslations = {
       language: '语言'
     },
     home: {
-      title: '全球电台',
+      title: '全球电台-海纳思定制版',
       subtitle: '聆听世界，音乐无界',
       randomDiscover: '随机发现',
       exploreNew: '探索新电台',
